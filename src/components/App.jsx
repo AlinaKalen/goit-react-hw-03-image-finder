@@ -24,6 +24,7 @@ const App = () => {
   useEffect(() => {
     const fetchImagesAndUpdateState = async () => {
       if (!searchQuery) return;
+      
 
       setIsLoading(true);
 
@@ -35,11 +36,14 @@ const App = () => {
           setImages((prevImages) => [...prevImages, ...hits]);
         }
 
-        setLoadMore(page < Math.ceil(hits.totalHits / 12));
-      } finally {
-        setIsLoading(false);
-      }
-    };
+       const nextPageLoadMore = page < Math.ceil(hits.totalHits / 12);
+      setLoadMore(nextPageLoadMore);
+
+      console.log('loadMore:', nextPageLoadMore);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
     if (page !== prevPage || searchQuery !== prevPage) {
       fetchImagesAndUpdateState();
@@ -53,6 +57,7 @@ const App = () => {
 
   const handleLoadMore = () => {
     setPage((prevPage) => prevPage + 1);
+    setImages([]);
   };
 
   const handleImageClick = (imageUrl) => {
