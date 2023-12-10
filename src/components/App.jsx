@@ -20,14 +20,10 @@ const App = () => {
   }, [page]);
 
   const prevPage = prevPageRef.current;
-
   useEffect(() => {
     const fetchImagesAndUpdateState = async () => {
       if (!searchQuery) return;
-      
-
       setIsLoading(true);
-
       try {
         const hits = await fetchImages(searchQuery, page);
         if (page === 1) {
@@ -37,43 +33,38 @@ const App = () => {
         }
 
        const nextPageLoadMore = page < Math.ceil(hits.totalHits / 12);
-      setLoadMore(nextPageLoadMore);
+        setLoadMore(nextPageLoadMore);
 
       console.log('loadMore:', nextPageLoadMore);
     } finally {
       setIsLoading(false);
     }
   };
-
     if (page !== prevPage || searchQuery !== prevPage) {
       fetchImagesAndUpdateState();
     }
   }, [searchQuery, page, prevPage]);
-
   const handleSearchSubmit = (query) => {
     setSearchQuery(query);
     setPage(1);
   };
-
   const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
-    setImages([]);
-  };
-
+  setPage((prevPage) => prevPage + 1);
+};
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
   };
-
   const handleCloseModal = () => {
     setSelectedImage(null);
   };
-
   return (
     <div>
       <Searchbar onSubmit={handleSearchSubmit} />
       <ImageGallery images={images} onImageClick={handleImageClick} />
       {isLoading && <Loader />}
       {images.length > 0 && !isLoading && <Button onClick={handleLoadMore} />}
+      {loadMore && images.length > 0 && !isLoading && (
+      <Button onClick={handleLoadMore}>Load More</Button>)}
       {selectedImage && (
         <Modal isOpen={true} largeImageURL={selectedImage} onClose={handleCloseModal} />
       )}

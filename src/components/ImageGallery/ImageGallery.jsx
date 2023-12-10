@@ -1,5 +1,5 @@
 import React from 'react';
-
+import PropTypes from 'prop-types';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 import css from './ImageGallery.module.css';
 
@@ -11,7 +11,6 @@ const ImageGallery = ({ images, onImageClick }) => {
       {images.map((image) => (
         <ImageGalleryItem
           key={image.id}
-          id={image.id}
           imageUrl={image.webformatURL}
           image={image}
           alt={image.id}
@@ -21,6 +20,15 @@ const ImageGallery = ({ images, onImageClick }) => {
   );
 };
 
-
+ImageGallery.propTypes = {
+  images: PropTypes.array.isRequired,
+  onImageClick: PropTypes.func.isRequired,
+};
 
 export default ImageGallery;
+
+
+
+    
+      
+  
