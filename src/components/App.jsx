@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import fetchImages from './api';
+import React, { useState } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
@@ -7,66 +6,75 @@ import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
 
 const App = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [query, setQuery] = useState('');
   const [images, setImages] = useState([]);
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [hasMoreImages, setHasMoreImages] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [loadMore, setLoadMore] = useState(true);
-  const prevPageRef = useRef();
 
-  useEffect(() => {
-    prevPageRef.current = page;
-  }, [page]);
+  const handleSearchSubmit = (searchQuery) => {
+    setQuery(searchQuery);
+    setImages([]);
+    setCurrentPage(1);
+    setHasMoreImages(true);
+    fetchImages(searchQuery, 1);
+  };
 
-  const prevPage = prevPageRef.current;
-  useEffect(() => {
-    const fetchImagesAndUpdateState = async () => {
-      if (!searchQuery) return;
-      setIsLoading(true);
-      try {
-        const hits = await fetchImages(searchQuery, page);
-        if (page === 1) {
-          setImages(hits);
-        } else {
-          setImages((prevImages) => [...prevImages, ...hits]);
-        }
+  const fetchImages = async (searchQuery, page) => {
+    setIsLoading(true);
 
-       const nextPageLoadMore = page < Math.ceil(hits.totalHits / 12);
-        setLoadMore(nextPageLoadMore);
+    try {
+      const API_KEY = '40313621-9143b56d57bfc999f5bdb1732';
+      const perPage = 12;
+      const apiUrl = `https://pixabay.com/api/?q=${searchQuery}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`;
 
-      console.log('loadMore:', nextPageLoadMore);
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+
+      const { hits, totalHits } = data;
+
+      setImages((prevImages) => [...prevImages, ...hits]);
+      setCurrentPage((prevPage) => prevPage + 1);
+      setHasMoreImages(currentPage < Math.ceil(totalHits / perPage));
+    } catch (error) {
+      console.error('Error fetching images:', error);
     } finally {
       setIsLoading(false);
     }
   };
-    if (page !== prevPage || searchQuery !== prevPage) {
-      fetchImagesAndUpdateState();
-    }
-  }, [searchQuery, page, prevPage]);
-  const handleSearchSubmit = (query) => {
-    setSearchQuery(query);
-    setPage(1);
-  };
+
   const handleLoadMore = () => {
-  setPage((prevPage) => prevPage + 1);
-};
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
+    if (!isLoading && hasMoreImages) {
+      fetchImages(query, currentPage);
+    }
   };
-  const handleCloseModal = () => {
-    setSelectedImage(null);
+
+  const openModal = (largeURL) => {
+    setLargeImageURL(largeURL);
+    setShowModal(true);
   };
+
+  const closeModal = () => {
+    setLargeImageURL('');
+    setShowModal(false);
+  };
+
   return (
-    <div>
+    <div className="App">
       <Searchbar onSubmit={handleSearchSubmit} />
-      <ImageGallery images={images} onImageClick={handleImageClick} />
-      {isLoading && <Loader />}
-      {images.length > 0 && !isLoading && <Button onClick={handleLoadMore} />}
-      {loadMore && images.length > 0 && !isLoading && (
-      <Button onClick={handleLoadMore}>Load More</Button>)}
-      {selectedImage && (
-        <Modal isOpen={true} largeImageURL={selectedImage} onClose={handleCloseModal} />
+      <ImageGallery images={images} onImageClick={openModal} />
+      {isLoading && (
+        <div >
+          <Loader />
+        </div>
+      )}
+      {images.length > 0 && hasMoreImages && !isLoading && (
+        <Button onClick={handleLoadMore}>Load More</Button>
+      )}
+      {showModal && (
+        <Modal isOpen={true} largeImageURL={largeImageURL} onClose={closeModal} />
       )}
     </div>
   );

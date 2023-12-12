@@ -5,7 +5,6 @@ import css from './ImageGallery.module.css';
 
 
 const ImageGallery = ({ images, onImageClick }) => {
- 
   return (
     <ul className={css.ImageGallery}>
       {images.map((image) => (
@@ -14,7 +13,8 @@ const ImageGallery = ({ images, onImageClick }) => {
           imageUrl={image.webformatURL}
           image={image}
           alt={image.id}
-          onImageClick={onImageClick} />
+          onImageClick={onImageClick} 
+        />
       ))}
     </ul>
   );
